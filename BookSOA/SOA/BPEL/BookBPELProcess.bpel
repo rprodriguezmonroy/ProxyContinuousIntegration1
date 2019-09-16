@@ -1,0 +1,103 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Wed Sep 04 13:13:19 COT 2019
+  Author:  arese
+  Type: BPEL 2.0 Process
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="BookBPELProcess"
+               targetNamespace="http://xmlns.oracle.com/SOABPelDemo/BookSOA/BookBPELProcess"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://xmlns.oracle.com/SOABPelDemo/BookSOA/BookBPELProcess"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:ui="http://xmlns.oracle.com/soa/designer"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ns1="http://benchresources.in/services/BookService/" xmlns:ns2="http://benchresources.in/entities/Book"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions" xmlns:ess="http://xmlns.oracle.com/scheduler"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+
+    <import ui:processWSDL="true" namespace="http://xmlns.oracle.com/SOABPelDemo/BookSOA/BookBPELProcess" location="../WSDLs/BookBPELProcess.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="bookbpelprocess_client" partnerLinkType="client:BookBPELProcess" myRole="BookBPELProcessProvider"/>
+    <partnerLink name="ProxyInvoke" partnerLinkType="ns1:SOAPReference" partnerRole="IBookService"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="client:BookBPELProcessRequestMessage"/>
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable" messageType="client:BookBPELProcessResponseMessage"/>
+    <variable name="Invoke1_getBookByISDNRequestNumber_InputVariable" messageType="ns1:BookRequest"/>
+    <variable name="Invoke1_getBookByISDNRequestNumber_OutputVariable" messageType="ns1:BookResponse"/>
+  </variables>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in BookBPELProcess.wsdl) -->
+    <receive name="receiveInput" partnerLink="bookbpelprocess_client" portType="client:BookBPELProcess" operation="process" variable="inputVariable" createInstance="yes"/>
+    <scope name="Scope1">
+      <faultHandlers>
+        <catchAll>
+          <empty name="GenericEmpty"/>
+        </catchAll>
+      </faultHandlers>
+      <sequence name="InvokeBooks">
+        <assign name="ISBNAssign">
+          <copy>
+            <from>$inputVariable.payload/client:input</from>
+            <to>$Invoke1_getBookByISDNRequestNumber_InputVariable.parameters/ns2:isbnNumber</to>
+          </copy>
+        </assign>
+        <invoke name="CallProxyInvoke" partnerLink="ProxyInvoke" portType="ns1:IBookService"
+                operation="getBookByISDNRequestNumber" inputVariable="Invoke1_getBookByISDNRequestNumber_InputVariable"
+                outputVariable="Invoke1_getBookByISDNRequestNumber_OutputVariable" bpelx:invokeAsDetail="no"/>
+        <assign name="BookDataAssign">
+          <copy>
+            <from>concat("Book Data &gt; ISBN: ", $Invoke1_getBookByISDNRequestNumber_OutputVariable.parameters/ns2:bookISBN, ", Name: ", $Invoke1_getBookByISDNRequestNumber_OutputVariable.parameters/ns2:bookName, ", Author:  ", $Invoke1_getBookByISDNRequestNumber_OutputVariable.parameters/ns2:author, ", Category:  ",$Invoke1_getBookByISDNRequestNumber_OutputVariable.parameters/ns2:category )</from>
+            <to>$outputVariable.payload/client:result</to>
+          </copy>
+        </assign>
+      </sequence>
+    </scope>
+    <!-- Generate reply to synchronous request -->
+    <reply name="replyOutput" partnerLink="bookbpelprocess_client" portType="client:BookBPELProcess" operation="process" variable="outputVariable"/>
+  </sequence>
+</process>
