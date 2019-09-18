@@ -45,11 +45,11 @@
     
     <properties>
         <!-- These parameters are used by the compile goal -->
-        <scac.input.dir>${project.basedir}\SOA</scac.input.dir>
-        <scac.output.dir>${project.basedir}\target</scac.output.dir>
-        <scac.input>${scac.input.dir}\composite.xml</scac.input>
-        <scac.output>${scac.output.dir}\out.xml</scac.output>
-        <scac.error>${scac.output.dir}\error.txt</scac.error>
+        <scac.input.dir>${project.basedir}/SOA</scac.input.dir>
+        <scac.output.dir>${project.basedir}/target</scac.output.dir>
+        <scac.input>${scac.input.dir}/composite.xml</scac.input>
+        <scac.output>${scac.output.dir}/out.xml</scac.output>
+        <scac.error>${scac.output.dir}/error.txt</scac.error>
         <scac.displayLevel>1</scac.displayLevel>
         <!-- if you are using a config plan, uncomment the following line and update to point
              to your config plan -->
