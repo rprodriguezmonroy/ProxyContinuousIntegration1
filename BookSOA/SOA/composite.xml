@@ -40,7 +40,7 @@
   <reference name="SOAPReferenceProxy" ui:wsdlLocation="WSDLs/BookServicePS.wsdl">
     <interface.wsdl interface="http://benchresources.in/services/BookService/#wsdl.interface(IBookService)"/>
     <binding.ws port="http://benchresources.in/services/BookService/#wsdl.endpoint(BookService/BookServicePort)"
-                location="http://192.168.0.8:8001/HelloWorldAppSB/ProxyService/BookServicePS?wsdl" soapVersion="1.1">
+                location="http://localhost:8001/HelloWorldAppSB/ProxyService/BookServicePS?wsdl" soapVersion="1.1">
       <property name="weblogic.wsee.wsat.transaction.flowOption" type="xs:string" many="false">WSDLDriven</property>
     </binding.ws>
   </reference>
